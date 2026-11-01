@@ -2,7 +2,7 @@
   "name": "FitPulse Pro",
   "short_name": "FitPulse",
   "description": "Dashboard progres olahraga harian",
-  "start_url": "./FitPulse_Pro_sync.html",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",

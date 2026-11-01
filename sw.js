@@ -1,5 +1,5 @@
-const CACHE = "fitpulse-v1";
-const ASSETS = ["./", "./FitPulse_Pro_sync.html", "./manifest.json", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png"];
+const CACHE = "fitpulse-v2";
+const ASSETS = ["./", "./manifest.json", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
@@ -26,6 +26,6 @@ self.addEventListener("fetch", e => {
         caches.open(CACHE).then(c => c.put(req, copy));
       }
       return res;
-    }).catch(() => caches.match(req).then(r => r || (req.mode === "navigate" ? caches.match("./FitPulse_Pro_sync.html") : undefined)))
+    }).catch(() => caches.match(req).then(r => r || (req.mode === "navigate" ? caches.match("./") : undefined)))
   );
 });
