@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitPulse Pro - Dashboard Progres Olahraga Multi-Halaman</title>
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="FitPulse">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <script>
+        if ("serviceWorker" in navigator) {
+            window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(e => console.log("SW gagal:", e)));
+        }
+    </script>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-300 flex flex-col justify-between">
+
+    <div>
+        <!-- Top Navigation Bar -->
+        <header class="sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-primary-600 text-white p-2.5 rounded-xl shadow-lg shadow-primary-500/30 flex items-center justify-center">
+                        <i class="fa-solid fa-bolt-lightning text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-base sm:text-lg tracking-tight text-slate-900 dark:text-white">FitPulse Pro</h1>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Aturan Target & Latihan</p>
+                    </div>
+                </div>
+
+                <!-- Navigation Tabs (Desktop & Tablet) -->
+                <nav class="hidden md:flex items-center space-x-1 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-2xl border border-slate-200 dark:border-slate-700/50">
+                    <button type="button" onclick="switchTab('tab1')" id="nav-tab1" class="px-4 py-2 rounded-xl text-sm font-semibold transition bg-white dark:bg-slate-900 text-primary-600 dark:text-primary-400 shadow-sm cursor-pointer">
+                        <i class="fa-solid fa-chart-pie mr-2"></i>Cek Progres
+                    </button>
+                    <button type="button" onclick="switchTab('tab2')" id="nav-tab2" class="px-4 py-2 rounded-xl text-sm font-semibold transition text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer">
+                        <i class="fa-solid fa-circle-plus mr-2"></i>Input Aktivitas
+                    </button>
+                    <button type="button" onclick="switchTab('tab3')" id="nav-tab3" class="px-4 py-2 rounded-xl text-sm font-semibold transition text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer">
+                        <i class="fa-solid fa-sliders mr-2"></i>Pengaturan Target
+                    </button>
+                </nav>
+
+                <div class="flex items-center space-x-3">
+                    <!-- Theme Toggle Button -->
+                    <button type="button" onclick="toggleDarkMode()" aria-label="Toggle Dark Mode" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer">
+                        <i id="themeIcon" class="fa-solid fa-moon"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Mobile Bottom / Sub-Nav Bar -->
+        <div class="md:hidden bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-2 py-2 flex justify-around sticky top-16 z-30 shadow-sm">
+            <button type="button" onclick="switchTab('tab1')" id="mob-nav-tab1" class="flex flex-col items-center py-1.5 px-3 text-primary-600 dark:text-primary-400 font-semibold text-xs cursor-pointer">
+                <i class="fa-solid fa-chart-pie text-base mb-1"></i>Progres
+            </button>
+            <button type="button" onclick="switchTab('tab2')" id="mob-nav-tab2" class="flex flex-col items-center py-1.5 px-3 text-slate-500 dark:text-slate-400 font-medium text-xs cursor-pointer">
+                <i class="fa-solid fa-circle-plus text-base mb-1"></i>Input
+            </button>
+            <button type="button" onclick="switchTab('tab3')" id="mob-nav-tab3" class="flex flex-col items-center py-1.5 px-3 text-slate-500 dark:text-slate-400 font-medium text-xs cursor-pointer">
+                <i class="fa-solid fa-sliders text-base mb-1"></i>Pengaturan
+            </button>
+        </div>
+
+        <!-- Main Content Container -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+            <!-- ========================================== -->
+            <!-- HALAMAN 1: CEK PROGRES & RINGKASAN        -->
+            <!-- ========================================== -->
+            <section id="tab1" class="tab-content active space-y-8">
+                
+                <!-- Rule Banner Card -->
+                <div class="bg-gradient-to-r from-primary-600 to-indigo-700 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-indigo-500/10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden">
+                    <div class="absolute -right-10 -bottom-10 w-60 h-60 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+                    <div class="space-y-2 z-10">
+                        <span class="bg-white/20 px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase backdrop-blur-sm">Aturan Sah Olahraga 🎯</span>
+                        <h2 class="text-2xl sm:text-3xl font-bold" id="bannerGreeting">Status Sesi Hari Ini</h2>
+                        <p class="text-primary-100 text-sm sm:text-base max-w-xl">
+                            Syarat "Sah Olahraga": Wajib memenuhi <b id="ruleMandatoryText">Lompat 300x</b> PLUS minimal <b class="underline">1 Target Opsional</b> (Push Up / Pull Up / dll).
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-4 bg-black/20 backdrop-blur-md px-6 py-4 rounded-2xl border border-white/10 z-10 w-full md:w-auto justify-around">
+                        <div class="text-center">
+                            <span class="block text-2xl sm:text-3xl font-extrabold" id="todayStatusBadgeText">Belum Sah</span>
+                            <span class="text-xs text-primary-200 uppercase tracking-wider font-medium">Status Hari Ini</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stat Cards Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                    <!-- Sesi Sah -->
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <div class="p-3 rounded-xl bg-emerald-500/10 text-emerald-500">
+                                <i class="fa-solid fa-circle-check text-xl"></i>
+                            </div>
+                            <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-500">Total Sah</span>
+                        </div>
+                        <div class="mt-4">
+                            <span class="text-sm font-medium text-slate-500 dark:text-slate-400">Sesi Sah Tercapai</span>
+                            <div class="flex items-baseline gap-2 mt-1">
+                                <h3 class="text-2xl font-bold text-slate-900 dark:text-white" id="statValidSessions">0</h3>
+                                <span class="text-xs text-slate-500">sesi</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Total Wajib Terkumpul -->
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <div class="p-3 rounded-xl bg-primary-500/10 text-primary-500">
+                                <i class="fa-solid fa-person-running text-xl"></i>
+                            </div>
+                            <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-primary-500/10 text-primary-500" id="mandatoryLabelCard">Lompat</span>
+                        </div>
+                        <div class="mt-4">
+                            <span class="text-sm font-medium text-slate-500 dark:text-slate-400">Akumulasi Wajib (Minggu Ini)</span>
+                            <div class="flex items-baseline gap-2 mt-1">
+                                <h3 class="text-2xl font-bold text-slate-900 dark:text-white" id="statMandatoryTotal">0</h3>
+                                <span class="text-xs text-slate-500">kali</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Kalori -->
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <div class="p-3 rounded-xl bg-orange-500/10 text-orange-500">
+                                <i class="fa-solid fa-fire text-xl"></i>
+                            </div>
+                            <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-orange-500/10 text-orange-500">Kalori</span>
+                        </div>
+                        <div class="mt-4">
+                            <span class="text-sm font-medium text-slate-500 dark:text-slate-400">Kalori Terbakar (Total)</span>
+                            <div class="flex items-baseline gap-2 mt-1">
+                                <h3 class="text-2xl font-bold text-slate-900 dark:text-white" id="statCaloriesTotal">0</h3>
+                                <span class="text-xs text-slate-500">kcal</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Streak Hari Sah -->
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <div class="p-3 rounded-xl bg-purple-500/10 text-purple-500">
+                                <i class="fa-solid fa-fire-flame-curved text-xl"></i>
+                            </div>
+                            <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-purple-500/10 text-purple-500">Streak</span>
+                        </div>
+                        <div class="mt-4">
+                            <span class="text-sm font-medium text-slate-500 dark:text-slate-400">Streak Sah Beruntun</span>
+                            <div class="flex items-baseline gap-2 mt-1">
+                                <h3 class="text-2xl font-bold text-slate-900 dark:text-white" id="statStreak">0</h3>
+                                <span class="text-xs text-slate-500">hari</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grid Detail Progres & Chart -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Left: Progress Hari Ini -->
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+                        <h3 class="font-bold text-lg text-slate-900 dark:text-white flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-primary-500"></i> Rincian Target Hari Ini
+                        </h3>
+
+                        <div id="todayProgressList" class="space-y-4">
+                            <!-- Injected dynamically -->
+                        </div>
+
+                        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/50 border border-slate-100 dark:border-slate-800">
+                            <span class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Kesimpulan Aturan</span>
+                            <p id="ruleVerdictText" class="text-sm font-medium text-slate-700 dark:text-slate-300">Belum memenuhi syarat sah olahraga.</p>
+                        </div>
+                    </div>
+
+                    <!-- Right: Chart Aktivitas -->
+                    <div class="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <h3 class="font-bold text-lg text-slate-900 dark:text-white mb-1 flex items-center gap-2">
+                                <i class="fa-solid fa-chart-column text-primary-500"></i> Grafik Pencapaian 7 Hari Terakhir
+                            </h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mb-6">Monitoring jumlah latihan wajib & status sah mingguan.</p>
+                        </div>
+                        <div class="relative h-64 w-full">
+                            <canvas id="weeklyChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Riwayat Status Sesi Latihan -->
+                <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm">
+                    <h3 class="font-bold text-lg text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left text-primary-500"></i> Riwayat Status & Log Latihan
+                    </h3>
+                    <div id="historyListTab1" class="space-y-3">
+                        <!-- Injected dynamically -->
+                    </div>
+                </div>
+
+            </section>
+
+
+            <!-- ========================================== -->
+            <!-- HALAMAN 2: INPUT & CATAT AKTIVITAS        -->
+            <!-- ========================================== -->
+            <section id="tab2" class="tab-content space-y-8">
+                
+                <div class="max-w-2xl mx-auto bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm">
+                    <div class="mb-6">
+                        <h3 class="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                            <i class="fa-solid fa-circle-plus text-primary-500"></i> Input Log Latihan Harian
+                        </h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Masukkan hasil latihanmu hari ini sesuai target wajib dan opsional yang telah diatur.</p>
+                    </div>
+
+                    <form id="workoutLogForm" onsubmit="handleLogSubmit(event)" class="space-y-6">
+                        
+                        <!-- Wajib Input -->
+                        <div class="p-4 rounded-2xl bg-primary-500/5 border border-primary-500/20 space-y-3">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-primary-600 dark:text-primary-400 flex items-center justify-between">
+                                <span id="formMandatoryLabel">Target Wajib: Lompat</span>
+                                <span id="formMandatoryTargetDesc" class="text-xs font-normal text-slate-500">Target: 300x</span>
+                            </label>
+                            <div class="relative">
+                                <input type="number" id="inputMandatoryValue" min="0" required placeholder="Contoh: 300" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-primary-500 transition font-bold text-lg">
+                            </div>
+                        </div>
+
+                        <!-- Opsional Inputs Dynamic Container -->
+                        <div class="space-y-3">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                                Target Opsional (Pilih minimal 1 untuk Sah)
+                            </label>
+                            <div id="formOptionalsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <!-- Injected dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- General Details -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                            <div>
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Durasi (Menit)</label>
+                                <input type="number" id="inputDuration" min="1" required placeholder="30" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:border-primary-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Estimasi Kalori (Kcal)</label>
+                                <input type="number" id="inputCalories" min="1" required placeholder="250" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:border-primary-500">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="w-full py-3.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl shadow-lg shadow-primary-500/25 transition flex items-center justify-center gap-2 cursor-pointer">
+                            <i class="fa-solid fa-floppy-disk"></i> Simpan & Evaluasi Status Latihan
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Rest Timer Widget (Bonus Fitur Kemudahan Tracking) -->
+                <div class="max-w-2xl mx-auto bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+                            <i class="fa-solid fa-stopwatch text-primary-500"></i> Timer Istirahat Antar Set
+                        </h3>
+                        <span id="timerDisplay" class="text-2xl font-mono font-extrabold text-primary-600 dark:text-primary-400">00:60</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button type="button" onclick="startRestTimer(30)" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-semibold rounded-lg transition cursor-pointer">30 Detik</button>
+                        <button type="button" onclick="startRestTimer(60)" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-semibold rounded-lg transition cursor-pointer">60 Detik</button>
+                        <button type="button" onclick="startRestTimer(90)" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-semibold rounded-lg transition cursor-pointer">90 Detik</button>
+                        <button type="button" onclick="stopRestTimer()" class="ml-auto px-4 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 text-xs font-semibold rounded-lg transition cursor-pointer">Reset/Stop</button>
+                    </div>
+                </div>
+
+            </section>
+
+
+            <!-- ========================================== -->
+            <!-- HALAMAN 3: PENGATURAN TARGET & ATURAN     -->
+            <!-- ========================================== -->
+            <section id="tab3" class="tab-content space-y-8">
+                
+                <div class="max-w-2xl mx-auto bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                            <i class="fa-solid fa-sliders text-primary-500"></i> Pengaturan Aturan & Target
+                        </h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Sesuaikan target wajib dan daftar target opsional sesuai keinginanmu.</p>
+                    </div>
+
+                    <form id="settingsForm" onsubmit="saveSettings(event)" class="space-y-6">
+                        
+                        <!-- Mandatory Target Settings -->
+                        <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 space-y-4">
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-primary-600 dark:text-primary-400">1. Pengaturan Target Wajib (Mandatory)</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Nama Latihan Wajib</label>
+                                    <input type="text" id="settingMandatoryName" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:border-primary-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Jumlah Target Wajib</label>
+                                    <input type="number" id="settingMandatoryTarget" min="1" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:border-primary-500">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Optional Targets Settings -->
+                        <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 space-y-4">
+                            <div class="flex items-center justify-between">
+                                <h4 class="text-xs font-bold uppercase tracking-wider text-primary-600 dark:text-primary-400">2. Daftar Target Opsional (Pilih minimal 1 untuk Sah)</h4>
+                                <button type="button" onclick="addOptionalField()" class="text-xs px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition font-medium cursor-pointer">
+                                    <i class="fa-solid fa-plus mr-1"></i> Tambah Opsional
+                                </button>
+                            </div>
+                            <div id="settingOptionalsList" class="space-y-3">
+                                <!-- Injected dynamically -->
+                            </div>
+                        </div>
+
+                        <div class="pt-4 flex items-center justify-between border-t border-slate-100 dark:border-slate-800">
+                            <button type="button" onclick="resetAllData()" class="px-4 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 text-xs font-semibold rounded-xl transition flex items-center gap-2 cursor-pointer">
+                                <i class="fa-solid fa-trash-can"></i> Reset Semua Data
+                            </button>
+                            <button type="submit" class="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-xl shadow-md transition cursor-pointer">
+                                Simpan Pengaturan
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-6 mt-12 text-center text-xs text-slate-500">
+        <p>FitPulse Pro &bull; Dashboard Progres Olahraga Multi-Halaman dengan Sistem Aturan Khusus</p>
+    </footer>
+
+    <!-- Notification Custom Toast -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3 transform translate-y-24 opacity-0 transition-all duration-300 border border-slate-800">
+        <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400"></i>
+        <span id="toastMessage" class="text-sm font-medium">Berhasil disimpan!</span>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script>
+        // Sinkron ke Jurnal Harian (project Firebase yang sama dengan Baca Buku)
+        const firebaseConfig = {
+            apiKey: "AIzaSyC_BLhEsBj-tgvINllYScA5aTXC3gv1OD0",
+            authDomain: "baca-buku-4cec8.firebaseapp.com",
+            projectId: "baca-buku-4cec8",
+            storageBucket: "baca-buku-4cec8.firebasestorage.app",
+            messagingSenderId: "60082725935",
+            appId: "1:60082725935:web:31ffdb4063dc22844a52da",
+            measurementId: "G-R9GWN20Y7B"
+        };
+        var fitDb = null;
+        try { firebase.initializeApp(firebaseConfig); fitDb = firebase.firestore(); } catch(e) { console.log("Firebase Init Error:", e); }
+
+        function localYmd(iso) {
+            const d = new Date(iso);
+            return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+        }
+        // Kirim daftar tanggal "Sah Olahraga" ke jurnal. Log contoh (demo) tidak ikut dikirim.
+        async function syncToJurnal() {
+            if (!fitDb) return;
+            try {
+                const days = [...new Set(logs.filter(l => l.isValid && !l.demo).map(l => localYmd(l.date)))];
+                await fitDb.collection("fitpulse_sync").doc("default_user").set({
+                    json: JSON.stringify({ validDays: days }),
+                    ts: Date.now()
+                });
+            } catch(e) { console.error("Sync jurnal gagal:", e); }
+        }
+    </script>
+    <script>
+        // Default Configuration & Data State
+        let defaultSettings = {
+            mandatoryName: "Lompat",
+            mandatoryTarget: 300,
+            optionals: [
+                { id: 'pushup', name: 'Push Up', target: 30 },
+                { id: 'pullup', name: 'Pull Up', target: 15 },
+                { id: 'squat', name: 'Squat', target: 50 }
+            ]
+        };
+
+        let defaultLogs = [
+            {
+                id: Date.now() - 86400000,
+                date: new Date(Date.now() - 86400000).toISOString(),
+                mandatoryDone: 300,
+                optionalsDone: { pushup: 35, pullup: 0, squat: 0 },
+                duration: 40,
+                calories: 320,
+                isValid: true,
+                demo: true
+            }
+        ];
+
+        let settings = JSON.parse(localStorage.getItem('fitpulse_pro_settings')) || defaultSettings;
+        let logs = JSON.parse(localStorage.getItem('fitpulse_pro_logs')) || defaultLogs;
+        let weeklyChartInstance = null;
+        let timerInterval = null;
+
+        // Initialize App on Load
+        document.addEventListener('DOMContentLoaded', () => {
+            initTheme();
+            switchTab('tab1');
+            renderAll();
+            if (logs.some(l => !l.demo)) syncToJurnal(); // isi ulang log lama yang sudah Sah
+        });
+
+        // Tab Switching Logic (Fully robust and responsive)
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => {
+                el.classList.remove('active');
+            });
+            const targetTab = document.getElementById(tabId);
+            if(targetTab) {
+                targetTab.classList.add('active');
+            }
+
+            // Update Desktop & Mobile Nav styles
+            ['tab1', 'tab2', 'tab3'].forEach(id => {
+                const btn = document.getElementById(`nav-${id}`);
+                const mobBtn = document.getElementById(`mob-nav-${id}`);
+                if(id === tabId) {
+                    if(btn) btn.className = "px-4 py-2 rounded-xl text-sm font-semibold transition bg-white dark:bg-slate-900 text-primary-600 dark:text-primary-400 shadow-sm cursor-pointer";
+                    if(mobBtn) mobBtn.className = "flex flex-col items-center py-1.5 px-3 text-primary-600 dark:text-primary-400 font-semibold text-xs cursor-pointer";
+                } else {
+                    if(btn) btn.className = "px-4 py-2 rounded-xl text-sm font-semibold transition text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer";
+                    if(mobBtn) mobBtn.className = "flex flex-col items-center py-1.5 px-3 text-slate-500 dark:text-slate-400 font-medium text-xs cursor-pointer";
+                }
+            });
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            // Re-render chart if switching to tab 1
+            if(tabId === 'tab1' && weeklyChartInstance) {
+                weeklyChartInstance.resize();
+            }
+        }
+
+        // Theme Toggle Handler
+        function initTheme() {
+            const isDark = localStorage.getItem('fitpulse_theme') !== 'light';
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+                document.getElementById('themeIcon').className = 'fa-solid fa-sun';
+            } else {
+                document.documentElement.classList.remove('dark');
+                document.getElementById('themeIcon').className = 'fa-solid fa-moon';
+            }
+        }
+
+        function toggleDarkMode() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('fitpulse_theme', isDark ? 'dark' : 'light');
+            document.getElementById('themeIcon').className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+            if (weeklyChartInstance) {
+                updateChartTheme(weeklyChartInstance, isDark);
+            }
+        }
+
+        // Toast Notification
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastMsg.textContent = message;
+            if(type === 'success') {
+                toastIcon.className = 'fa-solid fa-circle-check text-emerald-400';
+            } else {
+                toastIcon.className = 'fa-solid fa-triangle-exclamation text-amber-400';
+            }
+
+            toast.classList.remove('translate-y-24', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-24', 'opacity-0');
+            }, 3000);
+        }
+
+        // Rest Timer Functions
+        function startRestTimer(seconds) {
+            if(timerInterval) clearInterval(timerInterval);
+            let timeLeft = seconds;
+            const display = document.getElementById('timerDisplay');
+            
+            display.textContent = `00:${timeLeft < 10 ? '0' : ''}${timeLeft}`;
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                if(timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    display.textContent = "Selesai!";
+                    showToast('Waktu istirahat selesai! Lanjutkan set berikutnya 💪');
+                } else {
+                    display.textContent = `00:${timeLeft < 10 ? '0' : ''}${timeLeft}`;
+                }
+            }, 1000);
+        }
+
+        function stopRestTimer() {
+            if(timerInterval) clearInterval(timerInterval);
+            document.getElementById('timerDisplay').textContent = "00:60";
+        }
+
+        // Render All Data across tabs
+        function renderAll() {
+            renderTab1();
+            renderTab2Inputs();
+            renderTab3Settings();
+            initOrUpdateChart();
+        }
+
+        // ==========================================
+        // RENDER TAB 1: PROGRES & RINGKASAN
+        // ==========================================
+        function renderTab1() {
+            document.getElementById('ruleMandatoryText').textContent = `${settings.mandatoryName} ${settings.mandatoryTarget}x`;
+            document.getElementById('mandatoryLabelCard').textContent = settings.mandatoryName;
+
+            // Check Today's status
+            const todayStr = new Date().toDateString();
+            const todayLogs = logs.filter(l => new Date(l.date).toDateString() === todayStr);
+            const isTodayValid = todayLogs.some(l => l.isValid);
+
+            const badgeText = document.getElementById('todayStatusBadgeText');
+            if(isTodayValid) {
+                badgeText.textContent = "Sah! 🎉";
+                badgeText.className = "block text-2xl sm:text-3xl font-extrabold text-emerald-400";
+                document.getElementById('bannerGreeting').textContent = "Luar Biasa, Hari Ini Sah!";
+            } else {
+                badgeText.textContent = "Belum Sah";
+                badgeText.className = "block text-2xl sm:text-3xl font-extrabold text-amber-300";
+                document.getElementById('bannerGreeting').textContent = "Belum Mencapai Syarat Sah";
+            }
+
+            // Stats Calculation
+            const validSessionsCount = logs.filter(l => l.isValid).length;
+            const totalMandatorySum = logs.reduce((acc, curr) => acc + (curr.mandatoryDone || 0), 0);
+            const totalCalSum = logs.reduce((acc, curr) => acc + (curr.calories || 0), 0);
+
+            document.getElementById('statValidSessions').textContent = validSessionsCount;
+            document.getElementById('statMandatoryTotal').textContent = totalMandatorySum;
+            document.getElementById('statCaloriesTotal').textContent = totalCalSum;
+
+            // Calculate Streak
+            let streak = 0;
+            let checkDate = new Date();
+            for (let i = 0; i < 30; i++) {
+                const dStr = checkDate.toDateString();
+                const hasValid = logs.some(l => l.isValid && new Date(l.date).toDateString() === dStr);
+                if (hasValid) {
+                    streak++;
+                    checkDate.setDate(checkDate.getDate() - 1);
+                } else if (i === 0) {
+                    checkDate.setDate(checkDate.getDate() - 1);
+                    const hasValidYesterday = logs.some(l => l.isValid && new Date(l.date).toDateString() === checkDate.toDateString());
+                    if (hasValidYesterday) {
+                        streak++;
+                        checkDate.setDate(checkDate.getDate() - 1);
+                    } else {
+                        break;
+                    }
+                } else {
+                    break;
+                }
+            }
+            document.getElementById('statStreak').textContent = streak;
+
+            // Today's Progress Breakdown
+            const todayMandatoryDone = todayLogs.reduce((acc, curr) => acc + (curr.mandatoryDone || 0), 0);
+            const mandatoryPct = Math.min(Math.round((todayMandatoryDone / settings.mandatoryTarget) * 100), 100);
+
+            let optionalsHtml = `
+                <div>
+                    <div class="flex justify-between text-sm font-semibold mb-1">
+                        <span>${settings.mandatoryName} (Wajib)</span>
+                        <span>${todayMandatoryDone} / ${settings.mandatoryTarget} (${mandatoryPct}%)</span>
+                    </div>
+                    <div class="w-full bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                        <div class="bg-primary-600 h-full rounded-full transition-all duration-500" style="width: ${mandatoryPct}%"></div>
+                    </div>
+                </div>
+            `;
+
+            let anyOptionalMet = false;
+            settings.optionals.forEach(opt => {
+                const optDone = todayLogs.reduce((acc, curr) => acc + (curr.optionalsDone[opt.id] || 0), 0);
+                const optPct = Math.min(Math.round((optDone / opt.target) * 100), 100);
+                if(optDone >= opt.target) anyOptionalMet = true;
+
+                optionalsHtml += `
+                    <div>
+                        <div class="flex justify-between text-sm font-semibold mb-1">
+                            <span>${opt.name} (Opsional)</span>
+                            <span>${optDone} / ${opt.target} (${optPct}%)</span>
+                        </div>
+                        <div class="w-full bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                            <div class="bg-indigo-500 h-full rounded-full transition-all duration-500" style="width: ${optPct}%"></div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('todayProgressList').innerHTML = optionalsHtml;
+
+            const isMandatoryMet = todayMandatoryDone >= settings.mandatoryTarget;
+            const verdictEl = document.getElementById('ruleVerdictText');
+            if(isMandatoryMet && anyOptionalMet) {
+                verdictEl.innerHTML = `<span class="text-emerald-500 font-bold">Terpenuhi!</span> Target wajib (${settings.mandatoryName}) tercapai dan minimal 1 target opsional terpenuhi.`;
+            } else if(!isMandatoryMet && !anyOptionalMet) {
+                verdictEl.innerHTML = `<span class="text-amber-500 font-bold">Belum Tercapai.</span> Target wajib dan target opsional belum mencukupi.`;
+            } else if(!isMandatoryMet) {
+                verdictEl.innerHTML = `<span class="text-amber-500 font-bold">Kurang Target Wajib.</span> Target opsional terpenuhi, tetapi ${settings.mandatoryName} belum mencapai ${settings.mandatoryTarget}x.`;
+            } else {
+                verdictEl.innerHTML = `<span class="text-amber-500 font-bold">Kurang Target Opsional.</span> Target wajib sudah tercapai, tetapi belum ada target opsional yang terpenuhi!`;
+            }
+
+            // History List Tab 1
+            const historyEl = document.getElementById('historyListTab1');
+            if(logs.length === 0) {
+                historyEl.innerHTML = `<div class="text-center py-6 text-slate-400 text-sm">Belum ada riwayat log latihan.</div>`;
+                return;
+            }
+
+            historyEl.innerHTML = logs.slice(0, 5).map(l => {
+                const dateFormatted = new Date(l.date).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+                const statusBadge = l.isValid 
+                    ? `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-500">Sah Olahraga ✅</span>`
+                    : `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-500">Belum Sah ⚠️</span>`;
+
+                let optSummary = Object.keys(l.optionalsDone || {}).map(k => {
+                    const optObj = settings.optionals.find(o => o.id === k);
+                    return optObj ? `${optObj.name}: ${l.optionalsDone[k]}x` : '';
+                }).filter(Boolean).join(', ');
+
+                return `
+                    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/50 border border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-sm text-slate-900 dark:text-white">${dateFormatted}</span>
+                                ${statusBadge}
+                            </div>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">
+                                <b>${settings.mandatoryName}:</b> ${l.mandatoryDone}x &bull; <b>Opsional:</b> ${optSummary || 'Tidak ada'} &bull; <b>Durasi:</b> ${l.duration}m (${l.calories} kcal)
+                            </p>
+                        </div>
+                        <button type="button" onclick="deleteLog(${l.id})" class="text-slate-400 hover:text-rose-500 text-xs px-2.5 py-1.5 transition cursor-pointer">
+                            <i class="fa-solid fa-trash-can"></i> Hapus
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ==========================================
+        // RENDER TAB 2: INPUT & CATAT AKTIVITAS
+        // ==========================================
+        function renderTab2Inputs() {
+            document.getElementById('formMandatoryLabel').textContent = `Target Wajib: ${settings.mandatoryName}`;
+            document.getElementById('formMandatoryTargetDesc').textContent = `Target: ${settings.mandatoryTarget}x`;
+
+            const container = document.getElementById('formOptionalsContainer');
+            container.innerHTML = settings.optionals.map(opt => `
+                <div class="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50">
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                        ${opt.name} <span class="text-[10px] text-slate-400">(Target: ${opt.target}x)</span>
+                    </label>
+                    <input type="number" min="0" value="0" name="opt_${opt.id}" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:border-primary-500">
+                </div>
+            `).join('');
+        }
+
+        function handleLogSubmit(e) {
+            e.preventDefault();
+            const mandatoryDone = parseInt(document.getElementById('inputMandatoryValue').value) || 0;
+            const duration = parseInt(document.getElementById('inputDuration').value) || 0;
+            const calories = parseInt(document.getElementById('inputCalories').value) || 0;
+
+            let optionalsDone = {};
+            let anyOptionalMet = false;
+
+            settings.optionals.forEach(opt => {
+                const valInput = document.querySelector(`[name="opt_${opt.id}"]`);
+                const val = valInput ? parseInt(valInput.value) || 0 : 0;
+                optionalsDone[opt.id] = val;
+                if(val >= opt.target) {
+                    anyOptionalMet = true;
+                }
+            });
+
+            const isMandatoryMet = mandatoryDone >= settings.mandatoryTarget;
+            const isValid = isMandatoryMet && anyOptionalMet;
+
+            const newLog = {
+                id: Date.now(),
+                date: new Date().toISOString(),
+                mandatoryDone,
+                optionalsDone,
+                duration,
+                calories,
+                isValid
+            };
+
+            logs.unshift(newLog);
+            localStorage.setItem('fitpulse_pro_logs', JSON.stringify(logs));
+            syncToJurnal();
+
+            document.getElementById('workoutLogForm').reset();
+            renderAll();
+            switchTab('tab1');
+
+            if(isValid) {
+                showToast('Latihan dicatat! Status: SAH OLAHRAGA! 🎉');
+            } else {
+                showToast('Latihan dicatat, tapi belum memenuhi syarat Sah (Wajib + min 1 Opsional). ⚠️', 'warning');
+            }
+        }
+
+        function deleteLog(id) {
+            logs = logs.filter(l => l.id !== id);
+            localStorage.setItem('fitpulse_pro_logs', JSON.stringify(logs));
+            syncToJurnal();
+            renderAll();
+            showToast('Log latihan dihapus.', 'warning');
+        }
+
+        // ==========================================
+        // RENDER TAB 3: PENGATURAN TARGET & ATURAN
+        // ==========================================
+        function renderTab3Settings() {
+            document.getElementById('settingMandatoryName').value = settings.mandatoryName;
+            document.getElementById('settingMandatoryTarget').value = settings.mandatoryTarget;
+
+            const listContainer = document.getElementById('settingOptionalsList');
+            listContainer.innerHTML = settings.optionals.map((opt, index) => `
+                <div class="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                    <input type="text" value="${opt.name}" onchange="updateOptionalProp(${index}, 'name', this.value)" placeholder="Nama Latihan" class="flex-1 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 text-xs focus:outline-none focus:border-primary-500">
+                    <input type="number" min="1" value="${opt.target}" onchange="updateOptionalProp(${index}, 'target', parseInt(this.value))" placeholder="Target" class="w-24 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 text-xs focus:outline-none focus:border-primary-500">
+                    <button type="button" onclick="removeOptionalField(${index})" class="text-slate-400 hover:text-rose-500 p-2 text-xs transition cursor-pointer">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function updateOptionalProp(index, prop, val) {
+            settings.optionals[index][prop] = val;
+        }
+
+        function addOptionalField() {
+            settings.optionals.push({
+                id: 'opt_' + Date.now(),
+                name: 'Latihan Baru',
+                target: 20
+            });
+            renderTab3Settings();
+        }
+
+        function removeOptionalField(index) {
+            if(settings.optionals.length <= 1) {
+                showToast('Minimal harus ada 1 target opsional!', 'warning');
+                return;
+            }
+            settings.optionals.splice(index, 1);
+            renderTab3Settings();
+        }
+
+        function saveSettings(e) {
+            e.preventDefault();
+            settings.mandatoryName = document.getElementById('settingMandatoryName').value;
+            settings.mandatoryTarget = parseInt(document.getElementById('settingMandatoryTarget').value) || 300;
+
+            localStorage.setItem('fitpulse_pro_settings', JSON.stringify(settings));
+            renderAll();
+            switchTab('tab1');
+            showToast('Pengaturan target berhasil diperbarui!');
+        }
+
+        function resetAllData() {
+            localStorage.removeItem('fitpulse_pro_logs');
+            localStorage.removeItem('fitpulse_pro_settings');
+            settings = defaultSettings;
+            logs = defaultLogs;
+            syncToJurnal();
+            renderAll();
+            switchTab('tab1');
+            showToast('Semua data berhasil di-reset.', 'warning');
+        }
+
+        // ==========================================
+        // CHART.JS WEEKLY SETUP
+        // ==========================================
+        function initOrUpdateChart() {
+            const canvasEl = document.getElementById('weeklyChart');
+            if(!canvasEl) return;
+            const ctx = canvasEl.getContext('2d');
+            const isDark = document.documentElement.classList.contains('dark');
+
+            const labels = [];
+            const dataPoints = [];
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                labels.push(d.toLocaleDateString('id-ID', { weekday: 'short' }));
+
+                const dateStr = d.toDateString();
+                const dayLogs = logs.filter(l => new Date(l.date).toDateString() === dateStr);
+                const dayMandatory = dayLogs.reduce((acc, curr) => acc + (curr.mandatoryDone || 0), 0);
+                dataPoints.push(dayMandatory);
+            }
+
+            if(weeklyChartInstance) {
+                weeklyChartInstance.data.labels = labels;
+                weeklyChartInstance.data.datasets[0].data = dataPoints;
+                weeklyChartInstance.data.datasets[0].label = `Total ${settings.mandatoryName}`;
+                weeklyChartInstance.update();
+                return;
+            }
+
+            weeklyChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: `Total ${settings.mandatoryName}`,
+                        data: dataPoints,
+                        backgroundColor: '#6366f1',
+                        borderRadius: 8,
+                        barThickness: 'flex',
+                        maxBarThickness: 32
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: isDark ? '#1e293b' : '#0f172a',
+                            titleColor: '#fff',
+                            bodyColor: '#cbd5e1',
+                            padding: 10,
+                            cornerRadius: 8
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: isDark ? '#94a3b8' : '#64748b', font: { family: 'Inter', size: 11 } }
+                        },
+                        y: {
+                            grid: { color: isDark ? '#334155' : '#e2e8f0', borderDash: [4, 4] },
+                            ticks: { color: isDark ? '#94a3b8' : '#64748b', font: { family: 'Inter', size: 11 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateChartTheme(chart, isDark) {
+            chart.options.scales.x.ticks.color = isDark ? '#94a3b8' : '#64748b';
+            chart.options.scales.y.ticks.color = isDark ? '#94a3b8' : '#64748b';
+            chart.options.scales.y.grid.color = isDark ? '#334155' : '#e2e8f0';
+            chart.options.plugins.tooltip.backgroundColor = isDark ? '#1e293b' : '#0f172a';
+            chart.update();
+        }
+    </script>
+</body>
+</html>
