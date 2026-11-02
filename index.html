@@ -249,51 +249,53 @@
             <section id="tab2" class="tab-content space-y-8">
                 
                 <div class="max-w-2xl mx-auto bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm">
-                    <div class="mb-6">
+                    <div class="mb-5">
                         <h3 class="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                            <i class="fa-solid fa-circle-plus text-primary-500"></i> Input Log Latihan Harian
+                            <i class="fa-solid fa-book-open text-primary-500"></i> Jurnal Latihan Harian
                         </h3>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Masukkan hasil latihanmu hari ini sesuai target wajib dan opsional yang telah diatur.</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Pilih tanggal lalu isi saja. Semua perubahan tersimpan otomatis, tidak perlu tombol simpan.</p>
                     </div>
 
-                    <form id="workoutLogForm" onsubmit="handleLogSubmit(event)" class="space-y-6">
-                        
-                        <!-- Wajib Input -->
+                    <!-- Pemilih hari -->
+                    <div class="flex items-center gap-2 mb-5">
+                        <button type="button" onclick="shiftDay(-1)" aria-label="Hari sebelumnya" class="w-11 h-11 shrink-0 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition cursor-pointer"><i class="fa-solid fa-chevron-left"></i></button>
+                        <input type="date" id="logDate" onchange="onDateChange()" class="flex-1 min-w-0 h-11 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 text-sm font-semibold text-center focus:outline-none focus:border-primary-500">
+                        <button type="button" onclick="shiftDay(1)" aria-label="Hari berikutnya" class="w-11 h-11 shrink-0 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition cursor-pointer"><i class="fa-solid fa-chevron-right"></i></button>
+                        <button type="button" onclick="goToday()" class="h-11 px-3 shrink-0 rounded-xl bg-primary-500/10 text-primary-600 dark:text-primary-400 text-xs font-bold transition cursor-pointer">Hari ini</button>
+                    </div>
+
+                    <div class="flex items-center justify-between mb-5 text-xs">
+                        <span id="dayStatus" class="px-3 py-1 rounded-full font-bold bg-slate-100 dark:bg-slate-800 text-slate-500">Belum diisi</span>
+                        <span id="saveState" class="text-slate-400"></span>
+                    </div>
+
+                    <form id="workoutLogForm" onsubmit="return false" class="space-y-6">
+
                         <div class="p-4 rounded-2xl bg-primary-500/5 border border-primary-500/20 space-y-3">
                             <label class="block text-xs font-bold uppercase tracking-wider text-primary-600 dark:text-primary-400 flex items-center justify-between">
                                 <span id="formMandatoryLabel">Target Wajib: Lompat</span>
                                 <span id="formMandatoryTargetDesc" class="text-xs font-normal text-slate-500">Target: 300x</span>
                             </label>
-                            <div class="relative">
-                                <input type="number" id="inputMandatoryValue" min="0" required placeholder="Contoh: 300" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-primary-500 transition font-bold text-lg">
-                            </div>
+                            <input type="number" inputmode="numeric" id="inputMandatoryValue" min="0" placeholder="0" oninput="autoSaveLog()" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-primary-500 transition font-bold text-lg">
                         </div>
 
-                        <!-- Opsional Inputs Dynamic Container -->
                         <div class="space-y-3">
                             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                                 Target Opsional (Pilih minimal 1 untuk Sah)
                             </label>
-                            <div id="formOptionalsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <!-- Injected dynamically -->
-                            </div>
+                            <div id="formOptionalsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
                         </div>
 
-                        <!-- General Details -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                             <div>
                                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Durasi (Menit)</label>
-                                <input type="number" id="inputDuration" min="1" required placeholder="30" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:border-primary-500">
+                                <input type="number" inputmode="numeric" id="inputDuration" min="0" placeholder="30" oninput="autoSaveLog()" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:border-primary-500">
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Estimasi Kalori (Kcal)</label>
-                                <input type="number" id="inputCalories" min="1" required placeholder="250" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:border-primary-500">
+                                <input type="number" inputmode="numeric" id="inputCalories" min="0" placeholder="250" oninput="autoSaveLog()" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:border-primary-500">
                             </div>
                         </div>
-
-                        <button type="submit" class="w-full py-3.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl shadow-lg shadow-primary-500/25 transition flex items-center justify-center gap-2 cursor-pointer">
-                            <i class="fa-solid fa-floppy-disk"></i> Simpan & Evaluasi Status Latihan
-                        </button>
                     </form>
                 </div>
 
@@ -446,6 +448,33 @@
 
         let settings = JSON.parse(localStorage.getItem('fitpulse_pro_settings')) || defaultSettings;
         let logs = JSON.parse(localStorage.getItem('fitpulse_pro_logs')) || defaultLogs;
+        // ---- Model baru: satu catatan per hari (seperti jurnal harian) ----
+        function ymdOf(l) { return l.day || localYmd(l.date); }
+        function todayYmd() { return localYmd(new Date().toISOString()); }
+        function noonIso(ymd) { const [y, m, d] = ymd.split('-').map(Number); return new Date(y, m - 1, d, 12, 0, 0).toISOString(); }
+        function evalLog(mandatoryDone, optionalsDone) {
+            const anyOpt = settings.optionals.some(o => (optionalsDone[o.id] || 0) >= o.target);
+            return mandatoryDone >= settings.mandatoryTarget && anyOpt;
+        }
+        // Gabungkan catatan lama yang tercatat lebih dari sekali dalam sehari
+        function normalizeLogs() {
+            const byDay = {};
+            logs.forEach(l => {
+                const k = ymdOf(l);
+                if (!byDay[k]) { byDay[k] = { ...l, day: k, optionalsDone: { ...(l.optionalsDone || {}) } }; return; }
+                const t = byDay[k];
+                t.mandatoryDone = (t.mandatoryDone || 0) + (l.mandatoryDone || 0);
+                t.duration = (t.duration || 0) + (l.duration || 0);
+                t.calories = (t.calories || 0) + (l.calories || 0);
+                Object.keys(l.optionalsDone || {}).forEach(id => { t.optionalsDone[id] = (t.optionalsDone[id] || 0) + l.optionalsDone[id]; });
+                t.demo = t.demo && l.demo;
+                t.isValid = evalLog(t.mandatoryDone, t.optionalsDone);
+            });
+            logs = Object.values(byDay).sort((a, b) => b.day.localeCompare(a.day));
+        }
+        normalizeLogs();
+        let editDay = todayYmd();
+        let syncTimer = null;
         let weeklyChartInstance = null;
         let timerInterval = null;
 
@@ -715,56 +744,69 @@
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                         ${opt.name} <span class="text-[10px] text-slate-400">(Target: ${opt.target}x)</span>
                     </label>
-                    <input type="number" min="0" value="0" name="opt_${opt.id}" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:border-primary-500">
+                    <input type="number" inputmode="numeric" min="0" placeholder="0" name="opt_${opt.id}" oninput="autoSaveLog()" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:border-primary-500">
                 </div>
             `).join('');
+            renderDayForm();
         }
 
-        function handleLogSubmit(e) {
-            e.preventDefault();
-            const mandatoryDone = parseInt(document.getElementById('inputMandatoryValue').value) || 0;
-            const duration = parseInt(document.getElementById('inputDuration').value) || 0;
-            const calories = parseInt(document.getElementById('inputCalories').value) || 0;
-
-            let optionalsDone = {};
-            let anyOptionalMet = false;
-
+        // Isi form dari catatan hari yang dipilih
+        function renderDayForm() {
+            const l = logs.find(x => ymdOf(x) === editDay);
+            const dateEl = document.getElementById('logDate');
+            dateEl.value = editDay; dateEl.max = todayYmd();
+            const setv = (id, v) => { document.getElementById(id).value = v ? v : ''; };
+            setv('inputMandatoryValue', l && l.mandatoryDone);
+            setv('inputDuration', l && l.duration);
+            setv('inputCalories', l && l.calories);
             settings.optionals.forEach(opt => {
-                const valInput = document.querySelector(`[name="opt_${opt.id}"]`);
-                const val = valInput ? parseInt(valInput.value) || 0 : 0;
-                optionalsDone[opt.id] = val;
-                if(val >= opt.target) {
-                    anyOptionalMet = true;
-                }
+                const el = document.querySelector(`[name="opt_${opt.id}"]`);
+                if (el) el.value = (l && l.optionalsDone && l.optionalsDone[opt.id]) ? l.optionalsDone[opt.id] : '';
             });
-
-            const isMandatoryMet = mandatoryDone >= settings.mandatoryTarget;
-            const isValid = isMandatoryMet && anyOptionalMet;
-
-            const newLog = {
-                id: Date.now(),
-                date: new Date().toISOString(),
-                mandatoryDone,
-                optionalsDone,
-                duration,
-                calories,
-                isValid
-            };
-
-            logs.unshift(newLog);
-            localStorage.setItem('fitpulse_pro_logs', JSON.stringify(logs));
-            syncToJurnal();
-
-            document.getElementById('workoutLogForm').reset();
-            renderAll();
-            switchTab('tab1');
-
-            if(isValid) {
-                showToast('Latihan dicatat! Status: SAH OLAHRAGA! 🎉');
-            } else {
-                showToast('Latihan dicatat, tapi belum memenuhi syarat Sah (Wajib + min 1 Opsional). ⚠️', 'warning');
-            }
+            updateDayStatus(l ? l.isValid : null, !!l);
+            document.getElementById('saveState').textContent = '';
         }
+
+        function updateDayStatus(isValid, hasLog) {
+            const el = document.getElementById('dayStatus');
+            if (!hasLog) { el.textContent = 'Belum diisi'; el.className = 'px-3 py-1 rounded-full font-bold bg-slate-100 dark:bg-slate-800 text-slate-500'; }
+            else if (isValid) { el.textContent = 'SAH OLAHRAGA ✓'; el.className = 'px-3 py-1 rounded-full font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'; }
+            else { el.textContent = 'Belum Sah'; el.className = 'px-3 py-1 rounded-full font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400'; }
+        }
+
+        // Simpan otomatis setiap kali ada isian yang berubah
+        function autoSaveLog() {
+            const num = id => Math.max(0, parseInt(document.getElementById(id).value) || 0);
+            const mandatoryDone = num('inputMandatoryValue');
+            const duration = num('inputDuration');
+            const calories = num('inputCalories');
+            const optionalsDone = {};
+            settings.optionals.forEach(opt => {
+                const el = document.querySelector(`[name="opt_${opt.id}"]`);
+                optionalsDone[opt.id] = el ? Math.max(0, parseInt(el.value) || 0) : 0;
+            });
+            const empty = !mandatoryDone && !duration && !calories && Object.values(optionalsDone).every(v => !v);
+            const prev = logs.find(x => ymdOf(x) === editDay);
+            const wasValid = !!(prev && prev.isValid);
+            logs = logs.filter(x => ymdOf(x) !== editDay);
+            let isValid = false;
+            if (!empty) {
+                isValid = evalLog(mandatoryDone, optionalsDone);
+                logs.push({ id: prev ? prev.id : Date.now(), day: editDay, date: noonIso(editDay), mandatoryDone, optionalsDone, duration, calories, isValid });
+            }
+            logs.sort((a, b) => b.day.localeCompare(a.day));
+            localStorage.setItem('fitpulse_pro_logs', JSON.stringify(logs));
+            clearTimeout(syncTimer); syncTimer = setTimeout(syncToJurnal, 700);
+            renderTab1(); initOrUpdateChart();
+            updateDayStatus(isValid, !empty);
+            document.getElementById('saveState').textContent = empty ? 'Catatan hari ini dikosongkan' : '✓ Tersimpan otomatis';
+            if (isValid && !wasValid) showToast('SAH OLAHRAGA! 🎉');
+        }
+
+        function setDay(ymd) { editDay = ymd > todayYmd() ? todayYmd() : ymd; renderDayForm(); }
+        function shiftDay(n) { const [y, m, d] = editDay.split('-').map(Number); setDay(localYmd(new Date(y, m - 1, d + n, 12).toISOString())); }
+        function goToday() { setDay(todayYmd()); }
+        function onDateChange() { const v = document.getElementById('logDate').value; if (v) setDay(v); else renderDayForm(); }
 
         function deleteLog(id) {
             logs = logs.filter(l => l.id !== id);
